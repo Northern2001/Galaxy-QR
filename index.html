@@ -1,13 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galaxy QR</title>
 </head>
-<body>
-    
 
-    
+<body>
+    <div>
+        <div id="nameId"> name</div>
+        <div id="phonneId"> phone</div>
+        <div id="fbId">Facebook</div>
+        <div id="otherId"></div>
+    </div>
+
+    <script>
+        var urlParams = new URLSearchParams(window.location.search);
+        var name = urlParams.get('name');
+        var phone = urlParams.get('phone');
+        var fb = urlParams.get('fb');
+        var other = urlParams.get('other');
+
+
+        var docName = document.getElementById("nameId")
+        docName.textContent = "Name: " + name
+
+        var docPhone = document.getElementById("phonneId")
+        docPhone.textContent = "Phone: " + phone
+
+        var docFb = document.getElementById("fbId")
+        docFb.textContent = "Facebook: " + fb
+
+        var docOther = document.getElementById("otherId")
+        docOther.textContent = "Other:" + other
+
+        console.log(name + phone + other + fb);
+    </script>
 </body>
+
 </html>
