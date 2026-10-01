@@ -95,8 +95,19 @@
             return /^(https?:|mailto:|tel:)/i.test(raw) ? raw : null;
         }
 
+        var SVG_ICONS = {
+            email: "M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z",
+            web: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 9h-3.1a15.7 15.7 0 0 0-1.4-6A8 8 0 0 1 18.9 11zM12 4c.8 1 1.7 3 2 7h-4c.3-4 1.2-6 2-7zM4.3 13h3.1a15.7 15.7 0 0 0 1.4 6A8 8 0 0 1 4.3 13zm3.1-2H4.3a8 8 0 0 1 4.5-6 15.7 15.7 0 0 0-1.4 6zM12 20c-.8-1-1.7-3-2-7h4c-.3 4-1.2 6-2 7zm3.2-1a15.7 15.7 0 0 0 1.4-6h3.1a8 8 0 0 1-4.5 6z"
+        };
+        function svgIcon(key) {
+            var ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+            svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("width", "22"); svg.setAttribute("height", "22");
+            var p = document.createElementNS(ns, "path"); p.setAttribute("d", SVG_ICONS[key]); p.setAttribute("fill", "#fff");
+            svg.appendChild(p); return svg;
+        }
+
         function detect(url) {
-            if (/^mailto:/i.test(url)) return { name: "Email", color: "#6c757d", slug: null };
+            if (/^mailto:/i.test(url)) return { name: "Email", color: "#EA4335", slug: null, icon: "email" };
             var host = "";
             try { host = new URL(url).hostname.toLowerCase(); } catch (e) { }
             for (var i = 0; i < PLATFORMS.length; i++) {
@@ -105,7 +116,7 @@
                     return { name: p[0], color: p[2], slug: p[3] };
                 }
             }
-            return { name: "Website", color: "#6c757d", slug: null };
+            return { name: "Website", color: "#4F46E5", slug: null, icon: "web" };
         }
 
         var name = (params.get("name") || "").trim();
@@ -120,8 +131,11 @@
         document.getElementById("bioId").hidden = !bio;
 
         var img = document.getElementById("avatarId");
-        var fallbackAvatar = "https://static.vecteezy.com/system/resources/previews/026/619/142/non_2x/default-avatar-profile-icon-of-social-media-user-photo-image-vector.jpg";
+        var fallbackAvatar = "data:image/svg+xml," + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" fill="#EEF0F7"/>' +
+            '<circle cx="12" cy="9" r="4" fill="#A5B4FC"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z" fill="#A5B4FC"/></svg>');
         img.onerror = function () { img.onerror = null; img.src = fallbackAvatar; };
+        img.referrerPolicy = "no-referrer";
         img.src = avatar && /^https?:/i.test(avatar) ? avatar : fallbackAvatar;
 
         if (phone) {
@@ -145,9 +159,17 @@
             if (p.slug) {
                 var ic = document.createElement("img");
                 ic.src = "https://cdn.simpleicons.org/" + p.slug + "/white";
-                ic.alt = "";
-                ic.onerror = function () { dot.textContent = p.name[0]; ic.remove(); };
+                ic.alt = p.name;
+                ic.onerror = function () {
+                    if (!ic.dataset.retry) {   // CDN dự phòng: SVG đen → đảo thành trắng
+                        ic.dataset.retry = "1";
+                        ic.style.filter = "brightness(0) invert(1)";
+                        ic.src = "https://cdn.jsdelivr.net/npm/simple-icons/icons/" + p.slug + ".svg";
+                    } else { dot.textContent = p.name[0]; ic.remove(); }
+                };
                 dot.appendChild(ic);
+            } else if (p.icon) {
+                dot.appendChild(svgIcon(p.icon));
             } else {
                 dot.textContent = p.name === "LinkedIn" ? "in" : p.name[0];
             }
